@@ -1,8 +1,8 @@
 # Gerekli .NET sınıflarını yükle
 Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName System.Windows.Forms # (Eğer dosya seçimi gibi WinForms kontrolleri gerekirse)
+Add-Type -AssemblyName System.Windows.Forms
 
-# XAML tanımı - Daha modern ve düzenli UI
+# XAML tanımı - Daha temiz ve okunabilir UI
 [xml]$xaml = @"
 <Window 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -12,23 +12,23 @@ Add-Type -AssemblyName System.Windows.Forms # (Eğer dosya seçimi gibi WinForms
     Width="700" 
     ResizeMode="NoResize" 
     WindowStartupLocation="CenterScreen"
-    Background="#f0f0f0"> <!-- Hafif gri arka plan -->
-    <Border Margin="15" Background="White" CornerRadius="10" BorderBrush="#cccccc" BorderThickness="1"> <!-- Dış kenarlık -->
-        <Grid Margin="15"> <!-- İçerik için ana Grid -->
+    Background="#f0f0f0">
+    <Border Margin="15" Background="White" CornerRadius="10" BorderBrush="#cccccc" BorderThickness="1">
+        <Grid Margin="15">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/> <!-- Başlık -->
-                <RowDefinition Height="*"/>    <!-- Log kutusu -->
-                <RowDefinition Height="Auto"/> <!-- Butonlar -->
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Başlık -->
             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,15">
-                <TextBlock Text="🎮" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/> <!-- Emoji -->
+                <TextBlock Text="🎮" FontSize="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                 <TextBlock Name="TitleText" Text="FPS Optimizer" FontSize="26" FontWeight="SemiBold" Foreground="#333333" VerticalAlignment="Center"/>
             </StackPanel>
 
             <!-- Log Kutusu -->
-            <Border Grid.Row="1" BorderBrush="#dddddd" BorderThickness="1" CornerRadius="5" Padding="5"> <!-- Log kutusu için kenarlık -->
+            <Border Grid.Row="1" BorderBrush="#dddddd" BorderThickness="1" CornerRadius="5" Padding="5">
                 <ScrollViewer>
                     <TextBox Name="LogBox" 
                              VerticalScrollBarVisibility="Auto" 
@@ -54,7 +54,7 @@ Add-Type -AssemblyName System.Windows.Forms # (Eğer dosya seçimi gibi WinForms
                         BorderBrush="#45a049"
                         FontWeight="Medium">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7EF;" Margin="0,0,8,0" VerticalAlignment="Center"/> <!-- İkon -->
+                        <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE7EF;" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="FPS'i Optimize Et" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
@@ -115,10 +115,9 @@ function Write-Log($text) {
     $logBox = $Window.FindName("LogBox")
     $logBox.AppendText("$text`r`n")
     $logBox.ScrollToEnd()
-    # UI'nin güncellenmesini sağlamak için Dispatcher.Invoke kullanabilirsiniz, ancak genellikle ScrollToEnd yeterlidir.
 }
 
-# Orijinal fonksiyonlar
+# Orijinal fonksiyonlar - Karakter hatalarını düzelttim
 function Optimize-FPS {
     Write-Log "=== FPS Optimizasyonu Başlatılıyor ==="
     Write-Log "Gerekli izinlerin (yönetici) olduğundan emin olun."
@@ -198,7 +197,7 @@ function Optimize-FPS {
     }
 
     Write-Log "5/6: Gereksiz hizmetler durduruluyor..."
-    $servicesToStop = @("SysMain", "DiagTrack", "WSearch") # "dmwappushservice" gibi bir tanım vardı, SysMain zaten Superfetch'in yeni adı.
+    $servicesToStop = @("SysMain", "DiagTrack", "WSearch")
     foreach ($serviceName in $servicesToStop) {
         try {
             $service = Get-Service -Name $serviceName -ErrorAction Stop
@@ -215,10 +214,7 @@ function Optimize-FPS {
 
     Write-Log "6/6: Disk temizliği çalıştırılıyor..."
     try {
-        # Disk Cleanup Wizard'ı başlatmak (kullanıcının onaylaması gerekir)
-        # cleanmgr.exe /sagerun:1 # Bu genelde bir zamanlayıcı göreviyle çalışır, doğrudan komutla zorlu temizlik yapmaz.
-        # Daha güvenli bir alternatif olarak sfc çalıştırılabilir.
-        sfc /scannow | Write-Log # Bu çok fazla satır log yazabilir
+        sfc /scannow | Write-Log
         Write-Log "   ℹ️ SFC taraması başlatıldı (loglara yazılacak)."
     } catch {
         Write-Log "   ❌ Disk temizliği hatası (sfc): $($_.Exception.Message)"
@@ -235,7 +231,7 @@ function Reset-Settings {
     try {
         $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers"
         $regName = "HwSchMode"
-        $regValue = 2 # Varsayılan değer genelde 2'dir
+        $regValue = 2
         Set-ItemProperty -Path $regPath -Name $regName -Value $regValue -Type DWord -Force
         Write-Log "   ✅ HAGS etkinleştirildi. (HwSchMode = $regValue)"
     } catch {
@@ -252,7 +248,7 @@ function Reset-Settings {
         $gameDVRPolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR"
         $allowGameDVRName = "AllowGameDVR"
         $allowGameDVRValue = 1
-        if (Test-Path $gameDVRPolicyPath) { # Yol varsa değeri değiştir
+        if (Test-Path $gameDVRPolicyPath) {
             Set-ItemProperty -Path $gameDVRPolicyPath -Name $allowGameDVRName -Value $allowGameDVRValue -Type DWord -Force
         } else {
             Write-Warning "Sıfırlama: $gameDVRPolicyPath yolu mevcut değil, oluşturulmadı."
@@ -261,7 +257,7 @@ function Reset-Settings {
         $gameBarPath = "HKCU:\Software\Microsoft\GameBar"
         $showStartupPanelName = "ShowStartupPanel"
         $showStartupPanelValue = 1
-        if (Test-Path $gameBarPath) { # Yol varsa değeri değiştir
+        if (Test-Path $gameBarPath) {
             Set-ItemProperty -Path $gameBarPath -Name $showStartupPanelName -Value $showStartupPanelValue -Type DWord -Force
         } else {
              Write-Log "   ℹ️ GameBar ayarları zaten sıfırlanmış olabilir."
